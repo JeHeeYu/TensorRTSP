@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(TensorRTSP VERSION 0.1 LANGUAGES CXX CUDA)
+project(TensorRTSP VERSION 0.1 LANGUAGES C CXX CUDA)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -14,6 +14,12 @@ set(CMAKE_PREFIX_PATH "C:/Qt/6.6.1/msvc2019_64/lib/cmake/")
 # Define Preprocessor
 add_compile_definitions(_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
 add_compile_definitions(_HAS_AUTO_PTR_ETC)
+add_compile_definitions(NO_OPENSSL)
+add_compile_definitions(NO_GETIFADDRS)
+add_compile_definitions(_USAGEENVIRONMENT_VERSION_HH)
+add_compile_definitions(NO_STD_LIB)
+add_compile_definitions(SOLARIS)
+add_compile_definitions(OMIT_REGISTER_HANDLING)
 
 ##############################QT#################################
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Quick)
@@ -81,6 +87,39 @@ enable_language(CUDA)
 
 #######################################################################
 
+
+##############################FFMPEG###################################
+
+file(GLOB FFMPEG_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/FFMPEG/*.cpp")
+
+set(FFMPEG_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/FFMPEG/include")
+set(FFMPEG_LIB "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/FFMPEG/lib")
+
+#######################################################################
+
+##############################Live555###################################
+
+file(GLOB LIVE555_BASIC_USAGE_ENVIRONMENT_CPP "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/live555/BasicUsageEnvironment/*.cpp")
+file(GLOB LIVE555_BASIC_USAGE_ENVIRONMENT_C "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/live555/BasicUsageEnvironment/*.c")
+set(LIVE555_BASIC_USAGE_ENVIRONMENT_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/live555/BasicUsageEnvironment/include")
+
+file(GLOB LIVE555_GROUP_SOCK_CPP "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/live555/groupsock/*.cpp")
+file(GLOB LIVE555_GROUP_SOCK_C "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/live555/groupsock/*.c")
+set(LIVE555_GROUP_SOCK_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/live555/groupsock/include")
+
+file(GLOB LIVE555_LIVE_MEDIA_CPP "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/live555/liveMedia/*.cpp")
+file(GLOB LIVE555_LIVE_MEDIA_C "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/live555/liveMedia/*.c")
+set(LIVE555_LIVE_MEDIA_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/live555/liveMedia/include")
+
+file(GLOB LIVE555_USAGE_ENVIRONMENT_CPP "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/live555/UsageEnvironment/*.cpp")
+file(GLOB LIVE555_USAGE_ENVIRONMENT_C "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/live555/UsageEnvironment/*.c")
+set(LIVE555_USAGE_ENVIRONMENT_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/live555/UsageEnvironment/include")
+
+# include_directories("${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/live555/WindowsAudioInputDevice")
+# file(GLOB LIVE555WINDOWSAUDIOINPUTDEVICE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/live555/WindowsAudioInputDevice/*.cpp")
+
+#######################################################################
+
 set(PROJECT_SOURCES
         src/main.cpp
         qml.qrc
@@ -113,11 +152,33 @@ else()
     endif()
 endif()
 
-target_include_directories(TensorRTSP PUBLIC ${OpenCV_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CUDA_INCLUDE_DIRS} ${TENSORRT_INCLUDE_DIR})
-#target_include_directories(TensorRTSP PUBLIC ${OpenCV_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/modules ${TENSORRT_INCLUDE_DIR} ${CUDA_INCLUDE_DIRS})
+target_include_directories(TensorRTSP PUBLIC
+    ${OpenCV_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/modules
+    ${CUDA_INCLUDE_DIRS}
+    ${TENSORRT_INCLUDE_DIR}
+    ${FFMPEG_INCLUDE}
+    ${LIVE555_BASIC_USAGE_ENVIRONMENT_INCLUDE}
+    ${LIVE555_GROUP_SOCK_INCLUDE}
+    ${LIVE555_LIVE_MEDIA_INCLUDE}
+    ${LIVE555_USAGE_ENVIRONMENT_INCLUDE})
+
+target_link_directories(TensorRTSP PRIVATE ${FFMPEG_LIB})
 
 target_link_libraries(TensorRTSP
-  PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick ${OpenCV_LIBS} ${CUDA_LIBRARIES} ${NVINFER})
+  PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick ${OpenCV_LIBS} ${CUDA_LIBRARIES} ${NVINFER} avcodec avformat avutil)
+
+target_sources(TensorRTSP PRIVATE
+    ${FFMPEG_SOURCES}
+    ${LIVE555_BASIC_USAGE_ENVIRONMENT_CPP}
+    ${LIVE555_BASIC_USAGE_ENVIRONMENT_C}
+    ${LIVE555_GROUP_SOCK_CPP}
+    ${LIVE555_GROUP_SOCK_C}
+    ${LIVE555_LIVE_MEDIA_CPP}
+    ${LIVE555_LIVE_MEDIA_C}
+    ${LIVE555_USAGE_ENVIRONMENT_CPP}
+    ${LIVE555_USAGE_ENVIRONMENT_C}
+)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
