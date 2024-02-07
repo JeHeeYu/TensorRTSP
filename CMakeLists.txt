@@ -1,20 +1,97 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(TensorRTSP VERSION 0.1 LANGUAGES CXX)
+project(TensorRTSP VERSION 0.1 LANGUAGES CXX CUDA)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_PREFIX_PATH "C:/Qt/6.6.1/msvc2019_64/lib/cmake/")
+
+# Define Preprocessor
+add_compile_definitions(_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
+add_compile_definitions(_HAS_AUTO_PTR_ETC)
+
+##############################QT#################################
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Quick)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Quick)
 
+###########################OpenCV#################################
+
+find_package( OpenCV REQUIRED )
+
+#######################################################################
+
+###########################TensorRT#################################
+
+#Tensor RT
+file(GLOB CPPMODULES "${CMAKE_CURRENT_SOURCE_DIR}/modules/*.cpp")
+file(GLOB CUMODULESS "${CMAKE_CURRENT_SOURCE_DIR}/modules/*.cu")
+
+set(TENSORRT_INCLUDE_DIR "C:/TensorRT-8.6.1.6/include")
+
+if(TENSORRT_INCLUDE_DIR)
+  message("TENSORRT_INCLUDE_DIR Available!")
+  message("TENSORRT_INCLUDE_DIR : ${TENSORRT_INCLUDE_DIR}")
+else()
+  message("TENSORRT_INCLUDE_DIR NOT Available")
+endif()
+
+set(TENSORRT_LIBRARY "C:/TensorRT-8.6.1.6/lib")
+
+if(TENSORRT_LIBRARY)
+  message("TENSORRT_LIBRARY Available!")
+  message("TENSORRT_LIBRARY : ${TENSORRT_LIBRARY}")
+else()
+  message("TENSORRT_LIBRARY NOT Available")
+endif()
+
+set(CMAKE_PREFIX_PATH "C:/TensorRT-8.6.1.6/lib")
+find_library(NVINFER NAMES nvinfer PATHS ${CMAKE_PREFIX_PATH})
+
+if(NVINFER)
+    message("Found nvinfer library: ${NVINFER}")
+else()
+    message("nvinfer library not found.")
+endif()
+
+###########################CUDA##################################
+
+find_package(CUDAToolkit 11.1 REQUIRED)
+find_package(CUDA REQUIRED)
+message("CUDA_INCLUDE_DIRS : ${CUDA_LIBRARIES}")
+message("CUDA_LIBRARIES : ${CUDA_INCLUDE_DIRS}")
+
+if(CUDA_INCLUDE_DIRS)
+    message("CUDA_INCLUDE_DIRS Available!!!")
+else()
+    message("CUDA_INCLUDE_DIRS Not Available!!!")
+endif()
+
+if(CUDA_LIBRARIES)
+    message("CUDA_LIBRARIES Available!!!")
+else()
+    message("CUDA_LIBRARIES Not Available!!!")
+endif()
+
+enable_language(CUDA)
+
+#######################################################################
+
 set(PROJECT_SOURCES
-        main.cpp
+        src/main.cpp
         qml.qrc
+        ${CPPMODULES}
+        ${CUMODULES}
+        modules/chunk.cu
+        modules/detect.cu
+        modules/kernel.cu
+        modules/hardswish.cu
+        modules/decodeTensorCUDA.cu
+        modules/mish.cu
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
@@ -22,10 +99,6 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
     )
-# Define target properties for Android with Qt 6 as:
-#    set_property(TARGET TensorRTSP APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
-#                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
-# For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 else()
     if(ANDROID)
         add_library(TensorRTSP SHARED
@@ -40,8 +113,11 @@ else()
     endif()
 endif()
 
+target_include_directories(TensorRTSP PUBLIC ${OpenCV_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CUDA_INCLUDE_DIRS} ${TENSORRT_INCLUDE_DIR})
+#target_include_directories(TensorRTSP PUBLIC ${OpenCV_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/modules ${TENSORRT_INCLUDE_DIR} ${CUDA_INCLUDE_DIRS})
+
 target_link_libraries(TensorRTSP
-  PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick)
+  PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick ${OpenCV_LIBS} ${CUDA_LIBRARIES} ${NVINFER})
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
@@ -55,6 +131,7 @@ set_target_properties(TensorRTSP PROPERTIES
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
+    CUDA_ARCHITECTURES "35;50;72"
 )
 
 include(GNUInstallDirs)

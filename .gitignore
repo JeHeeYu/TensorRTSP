@@ -44,6 +44,17 @@ target_wrapper.*
 
 # QtCreator CMake
 CMakeLists.txt.user*
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+build/
 
 # QtCreator 4.8< compilation database
 compile_commands.json
@@ -52,3 +63,7 @@ compile_commands.json
 *creator.user*
 
 *_qmlcache.qrc
+
+# TensorRT Engine
+*.engine
+*.weights
