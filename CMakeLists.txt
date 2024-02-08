@@ -137,6 +137,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(TensorRTSP
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        src/VideoStreamer/videostreamer.h src/VideoStreamer/videostreamer.cpp
+        src/VideoStreamer/detectionmanager.h
     )
 else()
     if(ANDROID)
