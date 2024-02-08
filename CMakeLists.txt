@@ -120,6 +120,21 @@ set(LIVE555_USAGE_ENVIRONMENT_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/live
 
 #######################################################################
 
+##############################Socket.IO###################################
+
+file(GLOB SOCKET_IO_CPP "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/socketio/*.cpp")
+set(SOCKET_IO_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/socketio")
+
+file(GLOB SOCKET_IO_INTERNAL_CPP "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/socketio/internal/*.cpp")
+set(SOCKET_IO_INTERNAL_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/socketio/internal")
+
+# file(GLOB FFMPEG_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/FFMPEG/*.cpp")
+
+# set(FFMPEG_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/FFMPEG/include")
+# set(FFMPEG_LIB "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/FFMPEG/lib")
+
+#######################################################################
+
 set(PROJECT_SOURCES
         src/main.cpp
         qml.qrc
@@ -164,7 +179,10 @@ target_include_directories(TensorRTSP PUBLIC
     ${LIVE555_BASIC_USAGE_ENVIRONMENT_INCLUDE}
     ${LIVE555_GROUP_SOCK_INCLUDE}
     ${LIVE555_LIVE_MEDIA_INCLUDE}
-    ${LIVE555_USAGE_ENVIRONMENT_INCLUDE})
+    ${LIVE555_USAGE_ENVIRONMENT_INCLUDE}
+    ${SOCKET_IO_INCLUDE}
+    ${SOCKET_IO_INTERNAL_INCLUDE}
+)
 
 target_link_directories(TensorRTSP PRIVATE ${FFMPEG_LIB})
 
@@ -181,6 +199,8 @@ target_sources(TensorRTSP PRIVATE
     ${LIVE555_LIVE_MEDIA_C}
     ${LIVE555_USAGE_ENVIRONMENT_CPP}
     ${LIVE555_USAGE_ENVIRONMENT_C}
+    ${SOCKET_IO_CPP}
+    ${SOCKET_IO_INTERNAL_CPP}
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
