@@ -139,6 +139,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${PROJECT_SOURCES}
         src/VideoStreamer/videostreamer.h src/VideoStreamer/videostreamer.cpp
         src/VideoStreamer/detectionmanager.h
+        src/Common/Singleton.h
     )
 else()
     if(ANDROID)
