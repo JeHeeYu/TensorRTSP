@@ -10,6 +10,20 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_PREFIX_PATH "C:/Qt/6.6.1/msvc2019_64/lib/cmake/")
+set(THIRD_PARTY_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty")
+
+add_definitions(
+    -DBOOST_DATE_TIME_NO_LIB
+    -DBOOST_REGEX_NO_LIB
+    -DASIO_STANDALONE
+
+    -D_WEBSOCKETPP_CPP11_STL_
+    -D_WEBSOCKETPP_CPP11_FUNCTIONAL_
+    -D_WEBSOCKETPP_CPP11_TYPE_TRAITS_
+    -D_WEBSOCKETPP_CPP11_CHRONO_
+
+    -DQT_NO_KEYWORDS
+)
 
 # Define Preprocessor
 add_compile_definitions(_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING)
@@ -20,6 +34,7 @@ add_compile_definitions(_USAGEENVIRONMENT_VERSION_HH)
 add_compile_definitions(NO_STD_LIB)
 add_compile_definitions(SOLARIS)
 add_compile_definitions(OMIT_REGISTER_HANDLING)
+
 
 ##############################QT#################################
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Quick)
@@ -122,16 +137,17 @@ set(LIVE555_USAGE_ENVIRONMENT_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/live
 
 ##############################Socket.IO###################################
 
-file(GLOB SOCKET_IO_CPP "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/socketio/*.cpp")
-set(SOCKET_IO_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/socketio")
+file(GLOB SOCKETIO_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sioclient/src/*.cpp")
+file(GLOB SOCKETIO_INTERNAL_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sioclient/src/internal/*.cpp")
 
-file(GLOB SOCKET_IO_INTERNAL_CPP "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/socketio/internal/*.cpp")
-set(SOCKET_IO_INTERNAL_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/socketio/internal")
+set(SOCKETIO_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sioclient/src")
+set(SOCKETIO_INTERNAL_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sioclient/src/internal")
 
-# file(GLOB FFMPEG_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/FFMPEG/*.cpp")
-
-# set(FFMPEG_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/FFMPEG/include")
-# set(FFMPEG_LIB "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/FFMPEG/lib")
+set(SUB_MODULE_INCLUDE
+    ${CMAKE_CURRENT_LIST_DIR}/3rdparty/sioclient/lib/websocketpp
+    ${CMAKE_CURRENT_LIST_DIR}/3rdparty/sioclient/lib/rapidjson/include
+    ${CMAKE_CURRENT_LIST_DIR}/3rdparty/sioclient/lib/asio/asio/include
+)
 
 #######################################################################
 
@@ -155,6 +171,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         src/VideoStreamer/videostreamer.h src/VideoStreamer/videostreamer.cpp
         src/VideoStreamer/detectionmanager.h
         src/Common/Singleton.h
+        src/Network/socketeventhandler.h src/Network/socketeventhandler.cpp
     )
 else()
     if(ANDROID)
@@ -180,8 +197,10 @@ target_include_directories(TensorRTSP PUBLIC
     ${LIVE555_GROUP_SOCK_INCLUDE}
     ${LIVE555_LIVE_MEDIA_INCLUDE}
     ${LIVE555_USAGE_ENVIRONMENT_INCLUDE}
-    ${SOCKET_IO_INCLUDE}
-    ${SOCKET_IO_INTERNAL_INCLUDE}
+    ${THIRD_PARTY_INCLUDE}
+    ${SOCKETIO_INCLUDE}
+    ${SOCKETIO_INTERNAL_INCLUDE}
+    ${SUB_MODULE_INCLUDE}
 )
 
 target_link_directories(TensorRTSP PRIVATE ${FFMPEG_LIB})
@@ -199,8 +218,8 @@ target_sources(TensorRTSP PRIVATE
     ${LIVE555_LIVE_MEDIA_C}
     ${LIVE555_USAGE_ENVIRONMENT_CPP}
     ${LIVE555_USAGE_ENVIRONMENT_C}
-    ${SOCKET_IO_CPP}
-    ${SOCKET_IO_INTERNAL_CPP}
+    ${SOCKETIO_SOURCES}
+    ${SOCKETIO_INTERNAL_SOURCES}
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
@@ -215,6 +234,8 @@ set_target_properties(TensorRTSP PROPERTIES
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
+    # CXX_STANDARD 17
+    # CXX_EXTENSIONS OFF
     CUDA_ARCHITECTURES "35;50;72"
 )
 
