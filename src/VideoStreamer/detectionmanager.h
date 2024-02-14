@@ -1,6 +1,7 @@
 #ifndef DETECTIONMANAGER_H
 #define DETECTIONMANAGER_H
 
+#include <QObject>
 #include <QFile>
 
 #include "class_detector.h"
@@ -9,10 +10,14 @@
 #include "opencv2/videoio/videoio.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
+#include "../Common/Singleton.h"
+
 #define YOLO_CFG "..\\TensorRTSP\\yolo\\yolov4.cfg"
 #define YOLO_WEIGHTS "..\\TensorRTSP\\yolo\\yolov4.weights"
 
-class DetectionManager
+#define DETECTIONMANAGER()       DetectionManager::Instance()
+
+class DetectionManager : public QObject, public Singleton<DetectionManager>
 {
 public:
     DetectionManager() : detector(std::make_unique<Detector>())
@@ -29,6 +34,7 @@ public:
         detector->init(config_v4);
     }
 
+    //inline void detect(const std::vector<cv::Mat> &matImage, std::vector<BatchResult> &batchResult)
     inline void detect(const std::vector<cv::Mat> &matImage, std::vector<BatchResult> &batchResult)
     {
         detector->detect(matImage, batchResult);
@@ -45,8 +51,6 @@ public:
     }
 
 private:
-
-
     bool checkYoloConfig() const
     {
         return QFile::exists(YOLO_CFG);
