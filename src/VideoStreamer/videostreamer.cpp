@@ -1,29 +1,10 @@
 #include "videostreamer.h"
 
+#include <QImage>
+
 VideoStreamer::VideoStreamer(QThread *parent) : QThread(parent)
 {
 
-}
-
-void VideoStreamer::run() {
-    while(true) {
-        for(int i =  0; i < videos.length(); i++) {
-            if(!videos[i].read(frame[i])) {
-
-            }
-
-            std::string windowName = "Video Window " + std::to_string(i+1);
-            cv::imshow(windowName, frame[i]);
-        }
-
-        if (cv::waitKey(1) >=  0) break;
-    }
-
-    for(auto &video : videos) {
-        video.release();
-    }
-
-    cv::destroyAllWindows();
 }
 
 void VideoStreamer::openVideos(QList<QString> videoList)
@@ -57,6 +38,11 @@ void VideoStreamer::openVideos(QList<QString> videoList)
             }
 
             std::string windowName = "Video Window " + std::to_string(i+1);
+
+            // here image
+            QImage currentImage = QImage((uchar*) frame[i].data, frame[i].cols, frame[i].rows, frame[i].step, QImage::Format_RGB888);
+            StreamingModel::Instance()->updateImage(currentImage);
+
             cv::imshow(windowName, frame[i]);
         }
 

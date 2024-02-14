@@ -22,7 +22,7 @@ add_definitions(
     -D_WEBSOCKETPP_CPP11_TYPE_TRAITS_
     -D_WEBSOCKETPP_CPP11_CHRONO_
 
-    -DQT_NO_KEYWORDS
+    #-DQT_NO_KEYWORDS
 )
 
 # Define Preprocessor
@@ -37,8 +37,9 @@ add_compile_definitions(OMIT_REGISTER_HANDLING)
 
 
 ##############################QT#################################
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Quick)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Quick)
+
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Quick Multimedia)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Quick Multimedia)
 
 ###########################OpenCV#################################
 
@@ -172,6 +173,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         src/VideoStreamer/detectionmanager.h
         src/Common/Singleton.h
         src/Network/socketeventhandler.h src/Network/socketeventhandler.cpp
+        src/Model/streamingmodel.h src/Model/streamingmodel.cpp
+        src/Model/streamingprovider.h src/Model/streamingprovider.cpp
     )
 else()
     if(ANDROID)
@@ -206,7 +209,7 @@ target_include_directories(TensorRTSP PUBLIC
 target_link_directories(TensorRTSP PRIVATE ${FFMPEG_LIB})
 
 target_link_libraries(TensorRTSP
-  PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick ${OpenCV_LIBS} ${CUDA_LIBRARIES} ${NVINFER} avcodec avformat avutil)
+  PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Quick  Qt${QT_VERSION_MAJOR}::Multimedia ${OpenCV_LIBS} ${CUDA_LIBRARIES} ${NVINFER} avcodec avformat avutil)
 
 target_sources(TensorRTSP PRIVATE
     ${FFMPEG_SOURCES}
